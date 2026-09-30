@@ -1,0 +1,67 @@
+* {
+    box-sizing: border-box;
+}
+
+#body {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    background-color: cadetblue;
+    width: 500px;
+    height: 800px;
+}
+
+#display {
+    display: flex;
+    align-items: center;
+    background-color: antiquewhite;
+    border: solid burlywood;
+    width: 400px;
+    height: 100px;
+    margin-top: 50px;
+    color: black;
+    padding: 0px 5px;
+    font-size: 32px;
+    
+}
+
+#keypad {
+    display: flex;
+    flex-wrap: wrap;
+    align-content: flex-start;
+    background-color: coral;
+    margin-top: 100px;
+    width: 400px;
+    height: 500px;
+}
+
+#numpad {
+    display: flex;
+    flex-wrap: wrap;
+    align-content: flex-start;
+    background-color: coral;
+    width: 300px;
+    height: 400px;
+}
+
+
+.key {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background-color: rgb(165, 42, 42);
+    border: solid beige;
+    width: 100px;
+    height: 100px;
+    color: beige;
+    font-size: 32px;
+    font-weight: 800;
+
+}
+
+/* Interactive Classes */
+
+.hovered {
+    background-color: rgb(211, 55, 55); 
+}
+
