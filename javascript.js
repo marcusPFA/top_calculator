@@ -8,16 +8,17 @@ const numbers = document.querySelectorAll(".number");
 
 // Input variables
 
-let calculation = {
+const calculation = {
 firstNumber : "",
 operator : "",
 secondNumber : "",
+previous : "",
+resultFlag : false,
 }
 
 // Operation variables
 
-let operationStep = "first number"; // possible values: "first number", "operator", "second number";
-
+let operationStep = "first number"; // possible values: "first number", "second number";
 keys.forEach((key) => {
     key.addEventListener("mouseover", () => key.classList.add("hovered"));
     key.addEventListener("mouseout", () => key.classList.remove("hovered"));
@@ -29,37 +30,53 @@ keys.forEach((key) => {
     // Display manipulation
 function updateDisplay (inputValue, calc) {
     const input = inputValue;
-
+    
     // Check if input given is a number, update first number or second number
-    if (input.classList.contains("number") && operationStep !== "operator") {
-        if (operationStep === "first number") calc.firstNumber += input.textContent;
-        else calc.secondNumber += input.textContent;
+    if (input.classList.contains("number")) {
+            if (operationStep === "first number") calc.firstNumber += input.textContent;
+            else calc.secondNumber += input.textContent;
     }
     
-
     // Check if input given is an operator, change operator or calculate if equation is complete
     if (input.classList.contains("operator")) {
-        if (operationStep === "second number" && calc.secondNumber !== "") {
-            calculate(calc);
-            calc.secondNumber = "";
-        }
-        if (calc.firstNumber !== "") {
-        calc.operator = input.textContent;
-        }
+
+            if (operationStep === "second number" && calc.secondNumber !== "") {
+                calculate(calc);
+                calc.secondNumber = "";
+                calc.resultFlag = true;
+            }
+            if (calc.firstNumber !== "") {
+            calc.operator = input.textContent;
+            }
     }
     
-    // Delete a character of the current operation part
-    if (input.id === "backspace") {
-        if (calc.secondNumber !== "") calc.secondNumber = calc.secondNumber.slice(0, calc.secondNumber.length - 1);
-        else if (calc.operator !== "") calc.operator = "";
-        else calc.firstNumber = calc.firstNumber.slice(0, calc.firstNumber.length - 1);
-    }
+    if (input.classList.contains("function")) {
+        // Check if decimal point already exists, if not add decimal point to correct part of equation
+        if (input.id === "point") {
+            if (operationStep === "first number" && !calc.firstNumber.includes(".")) calc.firstNumber += ".";
+            if (operationStep === "second number" && !calc.secondNumber.includes(".")) calc.secondNumber += ".";
+        }
 
-    // Run the mathematical operation if the equation is complete
-    if (input.id === "equal" && operationStep === "second number" && calc.secondNumber !== "") {
-        calculate(calc);
-        calc.operator = "";
-        calc.secondNumber = "";
+        // Delete a character of the current operation part
+        if (input.id === "backspace") {
+            if (calc.secondNumber !== "") calc.secondNumber = calc.secondNumber.slice(0, calc.secondNumber.length - 1);
+            else if (calc.operator !== "") calc.operator = "";
+            else calc.firstNumber = calc.firstNumber.slice(0, calc.firstNumber.length - 1);
+        }
+
+        // Run the mathematical operation if the equation is complete
+        if (input.id === "equal" && operationStep === "second number" && calc.secondNumber !== "") {
+            calculate(calc);
+            calc.previous = calc.firstNumber;
+            calc.operator = "";
+            calc.secondNumber = "";
+            calc.resultFlag = true;
+        }
+
+        // Clear calculator
+        if (input.id === "clear") {
+            clearCalculator(calc);
+        }
     }
     operationStep = calc.operator == "" ? "first number" : "second number"; 
 
@@ -67,10 +84,19 @@ function updateDisplay (inputValue, calc) {
 
 }
 
+function clearCalculator(calc) {
+            calc.firstNumber = "";
+            calc.operator = "";
+            calc.secondNumber = "";
+            calc.previous =  "";
+            calc.resultFlag = false;
+}
+
     // Execute calculation
 function calculate(calc) {
+    
 
-      switch (calc.operator) { 
+    switch (calc.operator) { 
 
         case "+":
             return calc.firstNumber = add(calc.firstNumber, calc.secondNumber);
@@ -80,11 +106,15 @@ function calculate(calc) {
             return calc.firstNumber = multiply(calc.firstNumber, calc.secondNumber);
         case "%":
             return calc.firstNumber = divide(calc.firstNumber, calc.secondNumber);
-      }
+        case "mod":
+            return calc.firstNumber = mod(calc.firstNumber, calc.secondNumber);
+        case "^":
+            return calc.firstNumber = exponentiate(calc.firstNumber, calc.secondNumber);
+    }
 }
 
 function truncateDecimals(number) {
-    return Math.trunc(number * 10**5) / 10**5;
+    return Math.trunc(number * 10**10) / 10**10;
 }
 
     // Math operations
@@ -104,7 +134,15 @@ function multiply(a, b) {
 function divide(a, b) {
     return String(truncateDecimals(Number(a) / Number(b)));
 }
-0
+
+function mod(a, b) {
+        return String(truncateDecimals(Number(a) % Number(b)));
+}
+
+function exponentiate(a,b) {
+    return String(truncateDecimals(Number(a) ** Number(b)));
+}
+
 // Input structure
 
 /* First number + operator + second number 
@@ -123,5 +161,3 @@ Steps to functionality
     Case 9: Click equal sign with full input structure, run operation, replace first number with result, change structure
 
     */
-
-    2.12345 * 10**3
