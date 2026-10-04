@@ -80,6 +80,7 @@ function removeHighlight(key) {
 function selectOperation(input) {
 
     if (input === "*") input = "x";
+    if (input === "%") input = "mod";
 
     operations.forEach(operation => {
         operation.classList.remove("selected")
@@ -145,11 +146,8 @@ if (currentOperand === "" || queuedOperation === "" || savedOperand === "") retu
             currentOperand = String(truncateDecimals((Number(savedOperand) * Number(currentOperand))));
             break;
         case "/":
-            if (currentOperand == "0" || currentOperand == "." || savedOperand == "0" || savedOperand == ".") {
-                currentOperand = divisionByZero;
-                break;
-            }
             currentOperand = String(truncateDecimals((Number(savedOperand) / Number(currentOperand))));
+            if (!(isFinite(currentOperand))) currentOperand = divisionByZero; 
             break;
         case "%":
         case "mod":
