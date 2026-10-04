@@ -1,163 +1,131 @@
-
-// Get key references
+//// Get references to HTML elements
 
 const display = document.querySelector("#display");
-const keys = document.querySelectorAll('.key');
-const operators = document.querySelectorAll('.operator');
+const keys = document.querySelectorAll(".key");
 const numbers = document.querySelectorAll(".number");
+const operations = document.querySelectorAll(".operation");
+const functions = document.querySelectorAll('.function');
 
-// Input variables
+// Calculator variables
 
-const calculation = {
-firstNumber : "",
-operator : "",
-secondNumber : "",
-previous : "",
-resultFlag : false,
-}
+let currentOperand = "";
+let operator = "";
+let queuedOperation = "";
+let savedOperand = "";
 
-// Operation variables
+//// Set event listeners
 
-let operationStep = "first number"; // possible values: "first number", "second number";
+numbers.forEach(number => {
+    number.addEventListener("click", () => appendNumericalInput(number));
+})
+
+operations.forEach((operation) => {
+    operation.addEventListener("click", () => selectOperation(operation));
+})
+
+functions.forEach((func) => {
+    switch (func.id) { 
+        case "backspace":
+            func.addEventListener("click", () => currentOperand = currentOperand.slice(0, currentOperand.length-1));
+            break;
+        case "equal":
+            func.addEventListener("click", () => {
+                operate();
+                operator = "="; 
+            });
+            break;
+        case "clear":
+            func.addEventListener("click", () => clearCalculator());
+
+
+    }
+})
+
 keys.forEach((key) => {
-    key.addEventListener("mouseover", () => key.classList.add("hovered"));
-    key.addEventListener("mouseout", () => key.classList.remove("hovered"));
-    key.addEventListener("click", () => updateDisplay(key, calculation));
+    key.addEventListener("mouseover", () => highlightHovered(key));
+    key.addEventListener("mouseout", () => removeHighlight(key));
+    key.addEventListener("click", () => display.textContent = currentOperand); // Update display after each key press
 });
 
-// Functions
 
-    // Display manipulation
-function updateDisplay (inputValue, calc) {
-    const input = inputValue;
-    
-    // Check if input given is a number, update first number or second number
-    if (input.classList.contains("number")) {
-            if (operationStep === "first number") calc.firstNumber += input.textContent;
-            else calc.secondNumber += input.textContent;
-    }
-    
-    // Check if input given is an operator, change operator or calculate if equation is complete
-    if (input.classList.contains("operator")) {
 
-            if (operationStep === "second number" && calc.secondNumber !== "") {
-                calculate(calc);
-                calc.secondNumber = "";
-                calc.resultFlag = true;
-            }
-            if (calc.firstNumber !== "") {
-            calc.operator = input.textContent;
-            }
-    }
-    
-    if (input.classList.contains("function")) {
-        // Check if decimal point already exists, if not add decimal point to correct part of equation
-        if (input.id === "point") {
-            if (operationStep === "first number" && !calc.firstNumber.includes(".")) calc.firstNumber += ".";
-            if (operationStep === "second number" && !calc.secondNumber.includes(".")) calc.secondNumber += ".";
-        }
 
-        // Delete a character of the current operation part
-        if (input.id === "backspace") {
-            if (calc.secondNumber !== "") calc.secondNumber = calc.secondNumber.slice(0, calc.secondNumber.length - 1);
-            else if (calc.operator !== "") calc.operator = "";
-            else calc.firstNumber = calc.firstNumber.slice(0, calc.firstNumber.length - 1);
-        }
 
-        // Run the mathematical operation if the equation is complete
-        if (input.id === "equal" && operationStep === "second number" && calc.secondNumber !== "") {
-            calculate(calc);
-            calc.previous = calc.firstNumber;
-            calc.operator = "";
-            calc.secondNumber = "";
-            calc.resultFlag = true;
-        }
+//// Functions
 
-        // Clear calculator
-        if (input.id === "clear") {
-            clearCalculator(calc);
-        }
-    }
-    operationStep = calc.operator == "" ? "first number" : "second number"; 
+// Hover effects
 
-    display.textContent = calc.firstNumber + calc.operator + calc.secondNumber;
+function highlightHovered(key) {
+    key.classList.add("hovered");
 
 }
 
-function clearCalculator(calc) {
-            calc.firstNumber = "";
-            calc.operator = "";
-            calc.secondNumber = "";
-            calc.previous =  "";
-            calc.resultFlag = false;
+function removeHighlight(key) {
+    key.classList.remove("hovered");
 }
 
-    // Execute calculation
-function calculate(calc) {
-    
+// Select and clear operation
 
-    switch (calc.operator) { 
+function selectOperation(operation) {
+    operations.forEach(operation => operation.classList.remove("selected"));
+    operation.classList.add("selected");
+    operator = operation.textContent;
+    operate();
+    
+}
+
+// Numerical input to display
+
+function appendNumericalInput(number) {
+        if (operator !== "") {
+            savedOperand = currentOperand;
+            currentOperand = "";
+            queuedOperation = operator;
+            operator = "";
+            operations.forEach(operation => operation.classList.remove("selected"));
+    }
+        if (number.textContent === "." && currentOperand.includes(".")) return;
+        currentOperand += number.textContent;
+}
+
+// Operate
+
+function operate() {
+if (currentOperand === "" || queuedOperation === "" || savedOperand === "") return console.log("Incomplete operation");
+
+    switch (queuedOperation) {
 
         case "+":
-            return calc.firstNumber = add(calc.firstNumber, calc.secondNumber);
+            currentOperand = String(Number(savedOperand) + Number(currentOperand));
+            break;
         case "-":
-            return calc.firstNumber = subtract(calc.firstNumber, calc.secondNumber);
+            currentOperand = String(Number(savedOperand) - Number(currentOperand));
+            break;
         case "x":
-            return calc.firstNumber = multiply(calc.firstNumber, calc.secondNumber);
+            currentOperand = String(Number(savedOperand) * Number(currentOperand));
+            break;
         case "%":
-            return calc.firstNumber = divide(calc.firstNumber, calc.secondNumber);
-        case "mod":
-            return calc.firstNumber = mod(calc.firstNumber, calc.secondNumber);
-        case "^":
-            return calc.firstNumber = exponentiate(calc.firstNumber, calc.secondNumber);
-    }
+            currentOperand = String(Number(savedOperand) / Number(currentOperand));
+            break;
+    }   
+
+    queuedOperation = "";
+    savedOperand = "";
+    return currentOperand;
+    }   
+
+function clearCalculator() {
+    currentOperand = "";
+    savedOperand = "";
+    operator = "";
+    queuedOperation = "";
+    operations.forEach(operation => operation.classList.remove("selected"));
 }
 
-function truncateDecimals(number) {
-    return Math.trunc(number * 10**10) / 10**10;
-}
 
-    // Math operations
-
-function add(a, b) {
-    return String(truncateDecimals(Number(a) + Number(b)));
-}
-
-function subtract(a, b) {
-    return String(truncateDecimals(Number(a) - Number(b)));
-}
-
-function multiply(a, b) {
-    return String(truncateDecimals(Number(a) * Number(b)));
-}
-
-function divide(a, b) {
-    return String(truncateDecimals(Number(a) / Number(b)));
-}
-
-function mod(a, b) {
-        return String(truncateDecimals(Number(a) % Number(b)));
-}
-
-function exponentiate(a,b) {
-    return String(truncateDecimals(Number(a) ** Number(b)));
-}
-
-// Input structure
-
-/* First number + operator + second number 
-
-Steps to functionality
-
-1. Get active part from input structure. If input compatible, add it.
-    Case 1: Click number during first number, enter number
-    Case 2: Click operator during first number empty, do nothing
-    Case 3: Click operator during first number filled, enter operator, move to operator step
-    Case 4: Click operator during operator step, change operator
-    Case 5: Click number during operator step, enter number, move to second number step
-    Case 6: Click number during second number step, enter number
-    Case 7: Click operator during second number step, change operator, remain on second number step
-    Case 8: Click equal sign without full input structure, do nothing
-    Case 9: Click equal sign with full input structure, run operation, replace first number with result, change structure
-
-    */
+// 1. Receive first number
+// 2. Press operation 
+// 3. Receive second number. Save first number in separate variable. 
+// Turn off operation key when first number begins being inputted
+// 4. Calculate when either another operation or "equal" key are pressed.
+// 5. Continue calculation with previous result + next operation + next number.

@@ -65,3 +65,6 @@
     background-color: rgb(211, 55, 55); 
 }
 
+.selected {
+    background-color: rgba(218, 168, 6, 0.956);
+}
