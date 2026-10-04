@@ -13,6 +13,8 @@ let operator = "";
 let queuedOperation = "";
 let savedOperand = "";
 
+let divisionByZero = "N0 ):<";
+
 //// Set event listeners
 
 numbers.forEach(number => {
@@ -47,10 +49,6 @@ keys.forEach((key) => {
     key.addEventListener("click", () => display.textContent = currentOperand); // Update display after each key press
 });
 
-
-
-
-
 //// Functions
 
 // Hover effects
@@ -77,6 +75,9 @@ function selectOperation(operation) {
 // Numerical input to display
 
 function appendNumericalInput(number) {
+
+        if (currentOperand === divisionByZero) currentOperand = "";
+
         if (operator !== "") {
             savedOperand = currentOperand;
             currentOperand = "";
@@ -105,7 +106,17 @@ if (currentOperand === "" || queuedOperation === "" || savedOperand === "") retu
             currentOperand = String(Number(savedOperand) * Number(currentOperand));
             break;
         case "%":
+            if (currentOperand == "0" || currentOperand == "." || savedOperand == "0" || savedOperand == ".") {
+                currentOperand = divisionByZero;
+                break;
+            }
             currentOperand = String(Number(savedOperand) / Number(currentOperand));
+            break;
+        case "mod":
+            currentOperand = String(Number(savedOperand) % Number(currentOperand));
+            break;
+        case "^":
+            currentOperand = String(Number(savedOperand) ** Number(currentOperand));
             break;
     }   
 
