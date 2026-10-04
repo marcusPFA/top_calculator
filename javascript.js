@@ -6,7 +6,8 @@ const numbers = document.querySelectorAll(".number");
 const operations = document.querySelectorAll(".operation");
 const functions = document.querySelectorAll('.function');
 
-// Calculator variables
+
+// Set calculator variables
 
 let currentOperand = "";
 let operator = "";
@@ -15,33 +16,48 @@ let savedOperand = "";
 
 let divisionByZero = "N0 ):<";
 
+// Set keyboard input variables
+
+const numberKeys = "1234567890.";
+const operationKeys = "+-*x/^%";
+const functionKeys = "enter = backspace escape";
+
+
+let calculatorInput = "";
+
 //// Set event listeners
 
 numbers.forEach(number => {
-    number.addEventListener("click", () => appendNumericalInput(number));
+    number.addEventListener("click", () => {
+        calculatorInput = number.textContent;
+        appendNumericalInput(calculatorInput);
+    });    
 })
 
 operations.forEach((operation) => {
-    operation.addEventListener("click", () => selectOperation(operation));
+    operation.addEventListener("click", () => {
+        calculatorInput = operation.textContent;
+        selectOperation(operation)
+    });
 })
 
 functions.forEach((func) => {
-    switch (func.id) { 
-        case "backspace":
-            func.addEventListener("click", () => currentOperand = currentOperand.slice(0, currentOperand.length-1));
-            break;
-        case "equal":
-            func.addEventListener("click", () => {
-                operate();
-                operator = "="; 
-            });
-            break;
-        case "clear":
-            func.addEventListener("click", () => clearCalculator());
+    func.addEventListener("click", () => {
+        calculatorInput = func.id;
+        pressFunctionKey(calculatorInput)
+    })
+});
+
+document.addEventListener("keydown", (input) => {
+    calculatorInput = input.key.toLowerCase();
+    if (numberKeys.includes(calculatorInput)) appendNumericalInput(calculatorInput);
+    if (operationKeys.includes(calculatorInput)) selectOperation();
+    if (functionKeys.includes(calculatorInput)) pressFunctionKey(calculatorInput);
 
 
-    }
-})
+    console.log(currentOperand);
+    display.textContent = currentOperand;
+});
 
 keys.forEach((key) => {
     key.addEventListener("mouseover", () => highlightHovered(key));
@@ -64,17 +80,23 @@ function removeHighlight(key) {
 
 // Select and clear operation
 
-function selectOperation(operation) {
-    operations.forEach(operation => operation.classList.remove("selected"));
-    operation.classList.add("selected");
-    operator = operation.textContent;
+function selectOperation() {
+
+    if (calculatorInput === "*") calculatorInput = "x";
+    if (calculatorInput === "/") calculatorInput = "%";
+
+    operations.forEach(operation => {
+        operation.classList.remove("selected")
+        if (operation.textContent == calculatorInput) operation.classList.add("selected");
+    });
+    operator = calculatorInput;
     operate();
     
 }
 
 // Numerical input to display
 
-function appendNumericalInput(number) {
+function appendNumericalInput(input) {
 
         if (currentOperand === divisionByZero) currentOperand = "";
 
@@ -85,9 +107,29 @@ function appendNumericalInput(number) {
             operator = "";
             operations.forEach(operation => operation.classList.remove("selected"));
     }
-        if (number.textContent === "." && currentOperand.includes(".")) return;
-        currentOperand += number.textContent;
+        if (input === "." && currentOperand.includes(".")) return;
+        if (currentOperand.length < 24) currentOperand += input;
+
 }
+
+function pressFunctionKey(input) {
+     switch (input) {
+        case "delete": 
+        case "backspace":
+            currentOperand = currentOperand.slice(0, currentOperand.length-1);
+            break;
+        case "=":
+        case "enter":
+        case "equal":
+                operate();
+                operator = "="; 
+            break;
+        case "escape":
+        case "clear":
+            clearCalculator();
+            break;
+    }
+} 
 
 // Operate
 
@@ -103,14 +145,14 @@ if (currentOperand === "" || queuedOperation === "" || savedOperand === "") retu
             currentOperand = String(Number(savedOperand) - Number(currentOperand));
             break;
         case "x":
-            currentOperand = String(Number(savedOperand) * Number(currentOperand));
+            currentOperand = String(Math.trunc(Number(savedOperand) * Number(currentOperand) * 10000) / 10000);
             break;
         case "%":
             if (currentOperand == "0" || currentOperand == "." || savedOperand == "0" || savedOperand == ".") {
                 currentOperand = divisionByZero;
                 break;
             }
-            currentOperand = String(Number(savedOperand) / Number(currentOperand));
+            currentOperand = String(Math.trunc(Number(savedOperand) / Number(currentOperand) * 10000) / 10000);
             break;
         case "mod":
             currentOperand = String(Number(savedOperand) % Number(currentOperand));
