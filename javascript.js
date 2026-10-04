@@ -168,7 +168,7 @@ if (currentOperand === "" || queuedOperation === "" || savedOperand === "") retu
 // Truncate result
 
 function truncateDecimals(number) {
-    return Math.trunc((number * 10 ** 20)) / 10 ** 20;
+    return Math.trunc((number * 10 ** 10)) / 10 ** 10;
 }
 
 
