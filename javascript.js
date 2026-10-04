@@ -22,7 +22,6 @@ const numberKeys = "1234567890.";
 const operationKeys = "+-*x/^%";
 const functionKeys = "enter = backspace escape";
 
-
 let calculatorInput = "";
 
 //// Set event listeners
@@ -37,7 +36,7 @@ numbers.forEach(number => {
 operations.forEach((operation) => {
     operation.addEventListener("click", () => {
         calculatorInput = operation.textContent;
-        selectOperation(operation)
+        selectOperation(calculatorInput)
     });
 })
 
@@ -51,11 +50,9 @@ functions.forEach((func) => {
 document.addEventListener("keydown", (input) => {
     calculatorInput = input.key.toLowerCase();
     if (numberKeys.includes(calculatorInput)) appendNumericalInput(calculatorInput);
-    if (operationKeys.includes(calculatorInput)) selectOperation();
+    if (operationKeys.includes(calculatorInput)) selectOperation(calculatorInput);
     if (functionKeys.includes(calculatorInput)) pressFunctionKey(calculatorInput);
 
-
-    console.log(currentOperand);
     display.textContent = currentOperand;
 });
 
@@ -80,16 +77,15 @@ function removeHighlight(key) {
 
 // Select and clear operation
 
-function selectOperation() {
+function selectOperation(input) {
 
-    if (calculatorInput === "*") calculatorInput = "x";
-    if (calculatorInput === "/") calculatorInput = "%";
+    if (input === "*") input = "x";
 
     operations.forEach(operation => {
         operation.classList.remove("selected")
-        if (operation.textContent == calculatorInput) operation.classList.add("selected");
+        if (operation.textContent == input) operation.classList.add("selected");
     });
-    operator = calculatorInput;
+    operator = input;
     operate();
     
 }
@@ -139,26 +135,28 @@ if (currentOperand === "" || queuedOperation === "" || savedOperand === "") retu
     switch (queuedOperation) {
 
         case "+":
-            currentOperand = String(Number(savedOperand) + Number(currentOperand));
+            currentOperand = String(truncateDecimals(Number(savedOperand) + Number(currentOperand)));
             break;
         case "-":
-            currentOperand = String(Number(savedOperand) - Number(currentOperand));
+            currentOperand = String(truncateDecimals(Number(savedOperand) - Number(currentOperand)));
             break;
+        case "*":
         case "x":
-            currentOperand = String(Math.trunc(Number(savedOperand) * Number(currentOperand) * 10000) / 10000);
+            currentOperand = String(truncateDecimals((Number(savedOperand) * Number(currentOperand))));
             break;
-        case "%":
+        case "/":
             if (currentOperand == "0" || currentOperand == "." || savedOperand == "0" || savedOperand == ".") {
                 currentOperand = divisionByZero;
                 break;
             }
-            currentOperand = String(Math.trunc(Number(savedOperand) / Number(currentOperand) * 10000) / 10000);
+            currentOperand = String(truncateDecimals((Number(savedOperand) / Number(currentOperand))));
             break;
+        case "%":
         case "mod":
-            currentOperand = String(Number(savedOperand) % Number(currentOperand));
+            currentOperand = String(truncateDecimals(Number(savedOperand) % Number(currentOperand)));
             break;
         case "^":
-            currentOperand = String(Number(savedOperand) ** Number(currentOperand));
+            currentOperand = String(truncateDecimals(Number(savedOperand) ** Number(currentOperand)));
             break;
     }   
 
@@ -166,6 +164,15 @@ if (currentOperand === "" || queuedOperation === "" || savedOperand === "") retu
     savedOperand = "";
     return currentOperand;
     }   
+
+// Truncate result
+
+function truncateDecimals(number) {
+    return Math.trunc((number * 10 ** 20)) / 10 ** 20;
+}
+
+
+// Clear calculator
 
 function clearCalculator() {
     currentOperand = "";
